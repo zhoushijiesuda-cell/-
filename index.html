@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="六爻排盘" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <title>六爻专业排盘单导出版</title>
+  <style>
+    :root{--bg:#f8fafc;--card:#fff;--text:#0f172a;--muted:#64748b;--line:#e2e8f0;--primary:#0f172a;--soft:#f1f5f9;--warn:#fef3c7;--warn-text:#92400e}
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:1100px;margin:0 auto;padding:16px}.hero,.card{background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+    .hero{padding:24px;margin-bottom:16px} h1{margin:8px 0 10px;font-size:30px;line-height:1.2} h2{margin:0;font-size:20px}
+    .muted{color:var(--muted)} .row{display:grid;gap:16px}.row.cols-2{grid-template-columns:1fr 1fr}
+    @media (max-width:900px){.row.cols-2{grid-template-columns:1fr}h1{font-size:26px}}
+    .card{padding:18px;margin-bottom:16px} label{display:block;font-size:14px;color:var(--muted);margin:0 0 8px}
+    textarea,input{width:100%;border:1px solid var(--line);border-radius:16px;padding:12px 14px;font-size:16px;background:#fff;color:var(--text)}
+    textarea{min-height:120px;resize:vertical}.btns{display:flex;flex-wrap:wrap;gap:10px}
+    button{border:1px solid var(--line);background:#fff;color:var(--text);padding:11px 14px;border-radius:14px;font-size:15px;cursor:pointer}
+    button.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px;color:var(--muted)}
+    .kv{background:var(--soft);border-radius:18px;padding:14px}.kv .k{font-size:13px;color:var(--muted)}.kv .v{margin-top:6px;font-weight:600}
+    .section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+    .tabs{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px}.tab{border:1px solid var(--line);background:#fff;border-radius:14px;padding:9px 14px;cursor:pointer}
+    .tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}.hidden{display:none}
+    .note{background:var(--soft);border-radius:16px;padding:14px;font-size:14px;line-height:1.7}.warn{background:var(--warn);color:var(--warn-text);border-radius:16px;padding:14px;font-size:14px;line-height:1.7}
+    .line-row{display:grid;gap:8px;grid-template-columns:72px 64px 72px 52px 52px 72px 72px 72px 52px 90px;border:1px solid var(--line);border-radius:18px;padding:10px;font-size:14px;align-items:center}
+    @media (max-width:900px){.line-row{grid-template-columns:repeat(2,1fr);font-size:13px}}
+    .badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:12px;border:1px solid var(--line);background:#fff;margin-right:4px}
+    .badge.dark{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .sheet{background:#fff;border:1px solid var(--line);border-radius:24px;padding:22px}.sheet-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width:900px){.sheet-grid{grid-template-columns:1fr}} .print-table{width:100%;border-collapse:collapse;font-size:13px}
+    .print-table th,.print-table td{border:1px solid var(--line);padding:8px;text-align:left}.print-table th{background:var(--soft)} .small{font-size:12px}
+    .install-tip{margin-top:10px;font-size:13px;color:var(--muted)}
+    @media print{body{background:#fff}.no-print{display:none!important}.wrap{max-width:none;padding:0}.sheet{border:none;border-radius:0;box-shadow:none}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero no-print">
+    <div class="pill">PWA 版 · 可添加到主屏幕</div>
+    <h1>六爻专业排盘单导出版</h1>
+    <div class="muted">支持起卦、自动断卦、导出 TXT、打印 / 存 PDF，并可添加到 iOS / Android 主屏幕使用。</div>
+    <div class="install-tip" id="installTip">首次使用请通过本地静态服务器打开，再添加到主屏幕。</div>
+  </div>
+
+  <div class="card no-print">
+    <div class="section-title"><h2>输入问题并起卦</h2></div>
+    <div class="row cols-2">
+      <div>
+        <label>问题</label>
+        <textarea id="question" placeholder="例如：我接下来三个月求财运势如何？这次考试能否顺利通过？"></textarea>
+      </div>
+      <div>
+        <label>可选：自定义起卦时间</label>
+        <input id="customTime" type="datetime-local" />
+        <div style="height:12px"></div>
+        <div class="btns">
+          <button class="primary" id="castBtn">起卦并断</button>
+          <button id="resetBtn">重置</button>
+          <button id="exportBtn">导出 TXT</button>
+          <button id="printBtn">打印/存 PDF</button>
+        </div>
+        <div style="height:12px"></div>
+        <div class="note small">同一问题在同一分钟内结果稳定；更换时间或问题，卦象会变化。</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="resultArea" class="hidden">
+    <div class="tabs no-print">
+      <button class="tab active" data-tab="sheet">排盘单</button>
+      <button class="tab" data-tab="chart">排盘明细</button>
+      <button class="tab" data-tab="analysis">断卦结论</button>
+    </div>
+
+    <div id="tab-sheet" class="tab-panel">
+      <div class="sheet" id="sheet">
+        <div class="section-title">
+          <div>
+            <h2>六爻专业排盘单</h2>
+            <div class="muted small">适合打印、存档、复盘</div>
+          </div>
+          <div class="small muted" id="sheetTime"></div>
+        </div>
+        <div class="sheet-grid">
+          <div class="kv"><div class="k">问题</div><div class="v" id="sheetQuestion"></div></div>
+          <div class="kv"><div class="k">类别</div><div class="v" id="sheetCategory"></div></div>
+          <div class="kv"><div class="k">月建 / 日辰</div><div class="v" id="sheetMonthDay"></div></div>
+          <div class="kv"><div class="k">本卦 / 变卦</div><div class="v" id="sheetGua"></div></div>
+          <div class="kv"><div class="k">评分 / 结论</div><div class="v" id="sheetVerdict"></div></div>
+          <div class="kv"><div class="k">规则依据</div><div class="v" id="sheetReasons"></div></div>
+        </div>
+        <div style="height:14px"></div>
+        <div class="card" style="margin:0 0 12px 0; padding:14px;"><strong>总断</strong><div id="sheetSummary" style="margin-top:8px; line-height:1.8"></div></div>
+        <div class="card" style="margin:0 0 12px 0; padding:14px;"><strong>用神</strong><div id="sheetUseGod" style="margin-top:8px; line-height:1.8"></div></div>
+        <div class="card" style="margin:0 0 12px 0; padding:14px;"><strong>世应</strong><div id="sheetWorld" style="margin-top:8px; line-height:1.8"></div></div>
+        <div class="card" style="margin:0 0 12px 0; padding:14px;"><strong>动变与规则</strong><div id="sheetMoving" style="margin-top:8px; line-height:1.8"></div><div id="sheetRules" class="muted" style="margin-top:8px; line-height:1.8"></div></div>
+        <div class="card" style="margin:0; padding:14px;">
+          <strong>排盘表</strong><div style="height:10px"></div>
+          <table class="print-table">
+            <thead><tr><th>爻位</th><th>爻象</th><th>六亲</th><th>五行</th><th>地支</th><th>六神</th><th>旺衰</th><th>标记</th><th>动静</th><th>变爻</th></tr></thead>
+            <tbody id="sheetTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-chart" class="tab-panel hidden"><div class="card"><div class="section-title"><h2>排盘明细</h2></div><div id="chartRows"></div></div></div>
+    <div id="tab-analysis" class="tab-panel hidden">
+      <div class="card">
+        <div class="section-title"><h2>断卦结论</h2></div>
+        <div class="note" id="analysisMonthDay"></div>
+        <div style="height:10px"></div>
+        <div class="note" id="analysisRules"></div>
+        <div style="height:10px"></div>
+        <div id="analysisAdvice"></div>
+        <div style="height:10px"></div>
+        <div class="warn">这是一款高阶练习工具，适合建立判断链条与生成结构化排盘单。涉及医疗、法律、投资等现实高风险事项时，不应只依赖占断结果。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const lineMap={6:{yin:true,moving:true,name:"老阴",symbol:"━ ━",changed:7},7:{yin:false,moving:false,name:"少阳",symbol:"━━━",changed:7},8:{yin:true,moving:false,name:"少阴",symbol:"━ ━",changed:8},9:{yin:false,moving:true,name:"老阳",symbol:"━━━",changed:8}};
+const trigramMap={"111":"乾","110":"兑","101":"离","100":"震","011":"巽","010":"坎","001":"艮","000":"坤"};
+const trigramElements={乾:"金",兑:"金",离:"火",震:"木",巽:"木",坎:"水",艮:"土",坤:"土"};
+const sixGods=["青龙","朱雀","勾陈","腾蛇","白虎","玄武"];
+const sixRelations=["兄弟","子孙","妻财","官鬼","父母"];
+const fiveElements=["木","火","土","金","水"];
+const heavenlyStems=["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"];
+const earthlyBranches=["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
+const branchElements={子:"水",丑:"土",寅:"木",卯:"木",辰:"土",巳:"火",午:"火",未:"土",申:"金",酉:"金",戌:"土",亥:"水"};
+const branchClash={子:"午",丑:"未",寅:"申",卯:"酉",辰:"戌",巳:"亥",午:"子",未:"丑",申:"寅",酉:"卯",戌:"辰",亥:"巳"};
+const branchCombine={子:"丑",丑:"子",寅:"亥",卯:"戌",辰:"酉",巳:"申",午:"未",未:"午",申:"巳",酉:"辰",戌:"卯",亥:"寅"};
+const branchHarm={子:"未",丑:"午",寅:"巳",卯:"辰",辰:"卯",巳:"寅",午:"丑",未:"子",申:"亥",酉:"戌",戌:"酉",亥:"申"};
+const branchBreak={子:"酉",酉:"子",卯:"午",午:"卯",辰:"丑",丑:"辰",未:"戌",戌:"未",寅:"亥",亥:"寅",巳:"申",申:"巳"};
+const generates={木:"火",火:"土",土:"金",金:"水",水:"木"};
+const controls={木:"土",土:"水",水:"火",火:"金",金:"木"};
+const seasonSupport={木:["寅","卯"],火:["巳","午"],土:["辰","戌","丑","未"],金:["申","酉"],水:["亥","子"]};
+const categoryConfig={求财:{useGod:["妻财","子孙"],focus:"看财爻是否得力，世爻能否承财，忌兄弟过旺耗财。",taboo:"兄弟过旺、财爻休囚、财化退。"},感情:{useGod:["官鬼","妻财"],focus:"看世应关系、对方星是否得力、动变是否生合。",taboo:"世应冲克、用神空破。"},考试:{useGod:["父母","官鬼"],focus:"看父母爻文书学业、官鬼爻成绩压力、世爻临场状态。",taboo:"父母爻休囚、世爻过弱。"},工作:{useGod:["官鬼","父母"],focus:"看官鬼职位、父母文书流程、世应能否相接。",taboo:"官鬼空破、应爻不接。"},健康:{useGod:["官鬼","子孙"],focus:"只作传统文化体验，不替代医疗判断。",taboo:"官鬼重叠、子孙无力。"},综合:{useGod:["世爻"],focus:"问题不明确时，先以世应和整体卦势为主。"}};
+function detectCategory(t){t=(t||"").trim();if(!t)return"综合";if(/财|收入|钱|投资|副业|奖金|生意|求财|财运/.test(t))return"求财";if(/感情|恋爱|婚|复合|对象|暧昧/.test(t))return"感情";if(/考试|学习|成绩|论文|面试|申请/.test(t))return"考试";if(/工作|offer|升职|职场|项目|领导/.test(t))return"工作";if(/健康|身体|失眠|情绪|恢复/.test(t))return"健康";return"综合";}
+function hashSeed(input){let h=1779033703^input.length;for(let i=0;i<input.length;i++){h=Math.imul(h^input.charCodeAt(i),3432918353);h=(h<<13)|(h>>>19)}return(h>>>0)||1}
+function mulberry32(a){return function(){let t=(a+=0x6d2b79f5);t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
+function seededLine(rand){const tosses=Array.from({length:3},()=>rand()<0.5?2:3);return tosses.reduce((a,b)=>a+b,0)}
+function getBinary(lines){return lines.map(n=>lineMap[n].yin?0:1)}
+function getTrigram(lines){const bits=getBinary(lines);return{lower:trigramMap[bits.slice(0,3).join("")],upper:trigramMap[bits.slice(3,6).join("")]}}
+function getChangedLines(lines){return lines.map(n=>lineMap[n].changed)}
+function relation(self,other){const a=fiveElements.indexOf(self),b=fiveElements.indexOf(other);return sixRelations[(b-a+5)%5]}
+function generatedBy(el){return Object.keys(generates).find(k=>generates[k]===el)||""}
+function controlledBy(el){return Object.keys(controls).find(k=>controls[k]===el)||""}
+function elementInteract(a,b){if(a===b)return"同类";if(generates[a]===b)return"生";if(generates[b]===a)return"受生";if(controls[a]===b)return"克";if(controls[b]===a)return"受克";return"平"}
+function timeCast(question,dt){const seed=hashSeed(`${question}|${dt.getFullYear()}-${dt.getMonth()+1}-${dt.getDate()} ${dt.getHours()}:${dt.getMinutes()}`);const rand=mulberry32(seed);return Array.from({length:6},()=>seededLine(rand))}
+function pickMonthBranch(dt){return earthlyBranches[dt.getMonth()%12]}
+function pickDayBranch(dt){const dayNum=Math.floor(dt.getTime()/86400000);return earthlyBranches[((dayNum%12)+12)%12]}
+function pickDayStem(dt){const dayNum=Math.floor(dt.getTime()/86400000);return heavenlyStems[((dayNum%10)+10)%10]}
+function getEmptyBranches(dayStem){const idx=heavenlyStems.indexOf(dayStem);return[earthlyBranches[(idx+10)%12],earthlyBranches[(idx+11)%12]]}
+function getSixGodOrder(dayStem){const startIndex=heavenlyStems.indexOf(dayStem)%6;return Array.from({length:6},(_,i)=>sixGods[(startIndex+i)%6])}
+function buildLines(lines,dt){const trigram=getTrigram(lines);const palace=trigramElements[trigram.lower];const branchSeed=trigram.lower.charCodeAt(0)+trigram.upper.charCodeAt(0);const world=(branchSeed%6)+1;let response=world+3;if(response>6)response-=6;const dayStem=pickDayStem(dt);const empties=getEmptyBranches(dayStem);const gods=getSixGodOrder(dayStem);return lines.map((line,i)=>{const element=trigramElements[i<3?trigram.lower:trigram.upper];const branch=earthlyBranches[(branchSeed+i*2)%12];return{line:i+1,raw:line,symbol:lineMap[line].symbol,moving:lineMap[line].moving,relation:relation(palace,element),element,branch,god:gods[i],empty:empties.includes(branch),isWorld:i+1===world,isResponse:i+1===response,hiddenGod:i%2===0?relation(palace,generatedBy(element)||element):"—"}})}
+function scoreLineStrength(item,monthBranch,dayBranch){let score=50;const monthElement=branchElements[monthBranch],dayElement=branchElements[dayBranch];if((seasonSupport[item.element]||[]).includes(monthBranch))score+=22;if(monthElement===item.element)score+=10;if(monthElement===generatedBy(item.element))score+=12;if(monthElement===controlledBy(item.element))score-=16;if(dayElement===item.element)score+=8;if(dayElement===generatedBy(item.element))score+=6;if(dayElement===controlledBy(item.element))score-=8;if(item.moving)score+=10;if(item.isWorld)score+=4;if(item.isResponse)score+=2;if(item.empty)score-=10;if(branchClash[item.branch]===monthBranch||branchClash[item.branch]===dayBranch)score-=8;if(branchCombine[item.branch]===monthBranch||branchCombine[item.branch]===dayBranch)score+=6;let level="平";if(score>=82)level="旺";else if(score>=66)level="相";else if(score>=46)level="平";else if(score>=30)level="休";else level="囚";return{score,level}}
+function getChangedLineMeta(lines,dt){return buildLines(getChangedLines(lines),dt)}
+function analyzeInteractions(items,monthBranch,dayBranch){const notes=[];const monthElement=branchElements[monthBranch],dayElement=branchElements[dayBranch];items.forEach(item=>{if(branchClash[item.branch]===dayBranch)notes.push(`${item.line}爻逢日冲`);if(branchClash[item.branch]===monthBranch)notes.push(`${item.line}爻逢月冲`);if(branchCombine[item.branch]===dayBranch||branchCombine[item.branch]===monthBranch)notes.push(`${item.line}爻逢合`);if(branchHarm[item.branch]===dayBranch||branchHarm[item.branch]===monthBranch)notes.push(`${item.line}爻受害`);if(branchBreak[item.branch]===dayBranch||branchBreak[item.branch]===monthBranch)notes.push(`${item.line}爻见破`);if(elementInteract(monthElement,item.element)==="克")notes.push(`月建克${item.line}爻`);if(elementInteract(dayElement,item.element)==="克")notes.push(`日辰克${item.line}爻`)});return[...new Set(notes)]}
+function analyzeSixChongLiuHe(origin){const pair=`${origin.upper}${origin.lower}`;const sixChongPairs=["乾坤","坎离","震巽","艮兑"];const liuhePairs=["乾巽","坤震","坎兑","离艮"];if(sixChongPairs.includes(pair)||sixChongPairs.includes(`${origin.lower}${origin.upper}`))return"六冲卦气偏动，事多反复、变化快。";if(liuhePairs.includes(pair)||liuhePairs.includes(`${origin.lower}${origin.upper}`))return"六合卦气偏合，事多有牵连、缓和、黏性。";return"本卦不以六冲六合为主，需回到世应与用神。"}
+function findUseGod(category,lineItems){const cfg=categoryConfig[category]||categoryConfig["综合"];const targets=cfg.useGod;const filtered=lineItems.filter(x=>targets.includes(x.relation));const sorted=[...filtered].sort((a,b)=>b.strength.score-a.strength.score);return{targets,all:filtered,best:sorted[0]||null}}
+function buildRuleEngine(question,category,origin,changed,monthBranch,dayBranch,lineItems,changedItems){const world=lineItems.find(x=>x.isWorld),response=lineItems.find(x=>x.isResponse),movingLines=lineItems.filter(x=>x.moving),useGod=findUseGod(category,lineItems),interactions=analyzeInteractions(lineItems,monthBranch,dayBranch),sixChongLiuHeText=analyzeSixChongLiuHe(origin),worldToResponse=world&&response?elementInteract(world.element,response.element):"平";let score=50;const engineReasons=[];if(useGod.best){score+=(useGod.best.strength.score-50)*0.6;engineReasons.push(`用神最强点在第${useGod.best.line}爻，旺衰${useGod.best.strength.level}`);if(useGod.best.moving){score+=8;engineReasons.push("用神发动")}if(useGod.best.empty){score-=10;engineReasons.push("用神旬空")}}else{score-=6;engineReasons.push("用神不集中")}if(world){score+=(world.strength.score-50)*0.25;engineReasons.push(`世爻${world.strength.level}`)}if(response){score+=(response.strength.score-50)*0.15;engineReasons.push(`应爻${response.strength.level}`)}if(worldToResponse==="生"||worldToResponse==="受生"){score+=6;engineReasons.push("世应有生助")}if(worldToResponse==="克"||worldToResponse==="受克"){score-=6;engineReasons.push("世应有克制")}if(movingLines.length>=4){score-=4;engineReasons.push("动爻过多，局势多变")}if(interactions.some(x=>x.includes("月冲")||x.includes("见破"))){score-=8;engineReasons.push("见月冲/破")}if(interactions.some(x=>x.includes("逢合"))){score+=4;engineReasons.push("有合象")}const finalScore=Math.max(0,Math.min(100,Math.round(score)));let verdict="中平";if(finalScore>=72)verdict="吉";else if(finalScore>=56)verdict="中平";else if(finalScore>=42)verdict="偏凶";else verdict="凶";const summary=`你问的是“${question||category}”。本卦 ${origin.upper}${origin.lower}，变卦 ${changed.upper}${changed.lower}。以月建 ${monthBranch}、日辰 ${dayBranch} 参断，规则引擎评分为 ${finalScore} 分，当前判断：${verdict}。`;const useGodText=useGod.best?`本题用神取 ${useGod.targets.join("、")}。卦中最有力者为第 ${useGod.best.line} 爻 ${useGod.best.relation}，五行 ${useGod.best.element}，地支 ${useGod.best.branch}，旺衰 ${useGod.best.strength.level}（${useGod.best.strength.score} 分）。`:`本题用神取 ${useGod.targets.join("、")}。当前卦中没有明显主导用神，宜以世应、动变和整体格局为主。`;const worldText=world&&response?`世爻在第 ${world.line} 爻，旺衰 ${world.strength.level}；应爻在第 ${response.line} 爻，旺衰 ${response.strength.level}。世应关系为“${worldToResponse}”。`:"世应信息不足，当前以整体卦势判断。";const movingText=movingLines.length?`动爻出现在 ${movingLines.map(x=>`${x.line}爻`).join("、")}。变爻提示：${changedItems.filter((x,i)=>lineItems[i].moving).map(x=>`${x.line}爻化${x.relation}${x.element}`).join("；")}。`:"本卦静爻为主，短期内大方向相对稳定。";const monthDayText=`月建主大环境，日辰主眼前触发。${sixChongLiuHeText}`;const changedText=interactions.length?`规则引擎捕捉到：${interactions.join("、")}。`:"未见明显合冲刑害破主导，仍以旺衰与世应为主。";const advancedAdvice=[`判断主轴：${(categoryConfig[category]||{}).focus||"先看世应用神。"}`,`注意风险点：${(categoryConfig[category]||{}).taboo||"避免把单个信号看得过重。"}`,"先看用神，再看世爻，再看应爻与动变，最后才看细枝末节。","用神旺而世能承，多主可成；用神旺而世弱，多主机会在但自己承接不足。","月建管背景，日辰管触发，合冲刑害破决定推进方式与波动形态。"];return{finalScore,verdict,engineReasons,summary,useGodText,worldText,movingText,monthDayText,changedText,advancedAdvice}}
+function formatTime(dt){const p=n=>String(n).padStart(2,"0");return`${dt.getFullYear()}-${p(dt.getMonth()+1)}-${p(dt.getDate())} ${p(dt.getHours())}:${p(dt.getMinutes())}`}
+function buildReading(question,dt,lines){const category=detectCategory(question),monthBranch=pickMonthBranch(dt),dayBranch=pickDayBranch(dt),dayStem=pickDayStem(dt),origin=getTrigram(lines),changed=getTrigram(getChangedLines(lines)),baseItems=buildLines(lines,dt),scoredItems=baseItems.map(x=>({...x,strength:scoreLineStrength(x,monthBranch,dayBranch)})),changedItems=getChangedLineMeta(lines,dt).map(x=>({...x,strength:scoreLineStrength(x,monthBranch,dayBranch)})),engine=buildRuleEngine(question,category,origin,changed,monthBranch,dayBranch,scoredItems,changedItems);return{category,timing:formatTime(dt),monthBranch,dayBranch,dayStem,origin,changed,items:scoredItems,changedItems,...engine}}
+function exportText(reading,question){const text=[`问题：${question||"综合占问"}`,`起卦时间：${reading.timing}`,`类别：${reading.category}`,`月建/日辰：${reading.monthBranch}月 ${reading.dayStem}${reading.dayBranch}日`,`本卦/变卦：${reading.origin.upper}${reading.origin.lower} → ${reading.changed.upper}${reading.changed.lower}`,`规则引擎评分：${reading.finalScore}`,`自动结论：${reading.verdict}`,"",`总断：${reading.summary}`,`用神：${reading.useGodText}`,`世应：${reading.worldText}`,`动变：${reading.movingText}`,`月日：${reading.monthDayText}`,`规则：${reading.changedText}`,"","排盘：",...reading.items.map((x,i)=>`${x.line}爻 ${x.symbol} ${x.relation}/${x.element}/${x.branch} ${x.god} 旺衰:${x.strength.level} ${x.isWorld?"世":""}${x.isResponse?"应":""}${x.empty?"空":""} -> ${reading.changedItems[i].relation}${reading.changedItems[i].element}`)].join("\n");const blob=new Blob([text],{type:"text/plain;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`六爻断卦结果_${reading.timing.replace(/[: ]/g,"-")}.txt`;a.click();URL.revokeObjectURL(url)}
+let currentReading=null,currentQuestion="";
+function renderLineRow(item,changed){const tags=[item.isWorld?'<span class="badge dark">世</span>':'',item.isResponse?'<span class="badge">应</span>':'',item.empty?'<span class="badge">空</span>':''].join('');return `<div class="line-row"><div>第${item.line}爻</div><div style="font-weight:600;letter-spacing:2px">${item.symbol}</div><div>${item.relation}</div><div>${item.element}</div><div>${item.branch}</div><div>${item.god}</div><div><span class="badge ${item.strength.level==='旺'||item.strength.level==='相'?'dark':''}">${item.strength.level}</span></div><div>${tags}</div><div>${item.moving?'动':'静'}</div><div class="muted">→ ${changed.relation}${changed.element}</div></div>`}
+function fillResult(reading,question){currentReading=reading;currentQuestion=question;document.getElementById('resultArea').classList.remove('hidden');document.getElementById('sheetTime').textContent=`${reading.timing} ｜ ${reading.monthBranch}月 / ${reading.dayStem}${reading.dayBranch}日`;document.getElementById('sheetQuestion').textContent=question||'综合占问';document.getElementById('sheetCategory').textContent=reading.category;document.getElementById('sheetMonthDay').textContent=`${reading.monthBranch}月 / ${reading.dayStem}${reading.dayBranch}日`;document.getElementById('sheetGua').textContent=`${reading.origin.upper}${reading.origin.lower} → ${reading.changed.upper}${reading.changed.lower}`;document.getElementById('sheetVerdict').textContent=`${reading.finalScore} / ${reading.verdict}`;document.getElementById('sheetReasons').textContent=reading.engineReasons.join('、');document.getElementById('sheetSummary').textContent=reading.summary;document.getElementById('sheetUseGod').textContent=reading.useGodText;document.getElementById('sheetWorld').textContent=reading.worldText;document.getElementById('sheetMoving').textContent=reading.movingText;document.getElementById('sheetRules').textContent=reading.changedText;document.getElementById('sheetTable').innerHTML=reading.items.map((x,i)=>`<tr><td>${x.line}</td><td>${x.symbol}</td><td>${x.relation}</td><td>${x.element}</td><td>${x.branch}</td><td>${x.god}</td><td>${x.strength.level} (${x.strength.score})</td><td>${x.isWorld?'世 ':''}${x.isResponse?'应 ':''}${x.empty?'空':''}</td><td>${x.moving?'动':'静'}</td><td>${reading.changedItems[i].relation}${reading.changedItems[i].element}</td></tr>`).join('');document.getElementById('chartRows').innerHTML=reading.items.map((x,i)=>renderLineRow(x,reading.changedItems[i])).join('');document.getElementById('analysisMonthDay').textContent=reading.monthDayText;document.getElementById('analysisRules').textContent=reading.changedText;document.getElementById('analysisAdvice').innerHTML=reading.advancedAdvice.map((x,i)=>`<div class="note" style="margin-bottom:10px">${i+1}. ${x}</div>`).join('')}
+function setTab(name){document.querySelectorAll('.tab').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===name));document.querySelectorAll('.tab-panel').forEach(panel=>panel.classList.add('hidden'));document.getElementById(`tab-${name}`).classList.remove('hidden')}
+document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>setTab(btn.dataset.tab)));
+document.getElementById('castBtn').addEventListener('click',()=>{const question=document.getElementById('question').value.trim();const custom=document.getElementById('customTime').value;const dt=custom?new Date(custom):new Date();if(Number.isNaN(dt.getTime()))return;const lines=timeCast(question||'综合占问',dt);const reading=buildReading(question||'综合占问',dt,lines);fillResult(reading,question);setTab('sheet')});
+document.getElementById('resetBtn').addEventListener('click',()=>{document.getElementById('question').value='';document.getElementById('customTime').value='';document.getElementById('resultArea').classList.add('hidden');currentReading=null;currentQuestion=''});
+document.getElementById('exportBtn').addEventListener('click',()=>{if(currentReading) exportText(currentReading,currentQuestion)});
+document.getElementById('printBtn').addEventListener('click',()=>{if(currentReading){setTab('sheet');setTimeout(()=>window.print(),100)}});
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}
+</script>
+</body>
+</html>
